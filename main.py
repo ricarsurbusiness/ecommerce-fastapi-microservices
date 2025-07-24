@@ -1,15 +1,15 @@
-from typing import Union
-
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
-app = FastAPI()
+# Cargar variables de entorno
+load_dotenv()
 
+from src.modules.auth_service.app.routers import user
+from src.modules.auth_service.app import models, database
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+models.Base.metadata.create_all(bind=database.engine)
 
+app = FastAPI(title="Auth Service")
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+app.include_router(user.router)

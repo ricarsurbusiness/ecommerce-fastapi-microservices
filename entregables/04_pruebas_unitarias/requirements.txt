@@ -1,0 +1,41 @@
+# Dependencias para Pruebas Unitarias - Sistema E-Commerce
+# ============================================================
+
+# Framework de pruebas principal
+pytest>=7.0.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0
+pytest-html>=3.1.0
+
+# Framework web y APIs
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Base de datos y ORM
+sqlalchemy>=2.0.0
+pymysql>=1.0.2
+alembic>=1.12.0
+
+# Autenticación y seguridad
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0
+
+# Herramientas de desarrollo
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+
+# Dependencias adicionales para pruebas
+requests>=2.31.0
+httpx>=0.25.0
+
+# Utilidades
+pydantic>=2.0.0
+typing-extensions>=4.8.0
+
+# Para generar reportes de cobertura
+coverage>=7.0.0
+
+# Opcional: Para pruebas más avanzadas
+factory-boy>=3.3.0
+freezegun>=1.2.0

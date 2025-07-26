@@ -6,7 +6,7 @@ Aplicación de e-commerce completa construida con arquitectura de microservicios
 
 ### Backend (Microservicios)
 - **Auth Service**: Autenticación y autorización de usuarios
-- **Product Service**: Gestión del catálogo de productos  
+- **Product Service**: Gestión del catálogo de productos
 - **Cart Service**: Manejo del carrito de compras
 - **Order Service**: Procesamiento de órdenes
 - **Gateway**: API Gateway para enrutamiento
@@ -62,7 +62,7 @@ Prueba_tecnica/
 
 ### Servicios Backend
 - Auth Service: http://localhost:8000
-- Product Service: http://localhost:8001  
+- Product Service: http://localhost:8001
 - Cart Service: http://localhost:8002
 - Order Service: http://localhost:8003
 
@@ -82,7 +82,7 @@ Prueba_tecnica/
 - **JWT**: Autenticación basada en tokens
 - **Docker**: Containerización
 
-### Frontend  
+### Frontend
 - **React**: Biblioteca de JavaScript para UI
 - **Vite**: Herramienta de build rápida
 - **ESLint**: Linter para JavaScript
@@ -122,6 +122,8 @@ Una vez levantados los servicios, la documentación interactiva está disponible
 
 ### Comandos útiles
 ```bash
+# Creacion de imagenes
+docker-compose build --no-cache
 # Levantar todos los servicios
 docker-compose up -d
 

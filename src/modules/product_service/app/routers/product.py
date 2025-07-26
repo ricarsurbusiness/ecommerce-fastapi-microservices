@@ -21,6 +21,7 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
+    print(f"✅ Producto creado: {new_product.name}, ID: {new_product.id}")
     return new_product
 
 @router.get("/", response_model=list[schemas.ProductResponse])

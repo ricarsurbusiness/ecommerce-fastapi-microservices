@@ -62,6 +62,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  cart_service:
+    build:
+      context: ./src/modules/cart_service
+    container_name: cart_service
+    ports:
+      - "8002:8000"
+    depends_on:
+      - auth_service
+      - ecommerce_db
+    environment:
+      DATABASE_URL: mysql+pymysql://admin:admin@ecommerce_db:3306/ecommerce_db
+      AUTH_SERVICE_URL: http://auth_service:8000/auth/verify-token
+      SECRET_KEY: mi_clave_secreta
+      ALGORITHM: HS256
+    networks:
+      - ecommerce_net
+    restart: on-failure
 
   product_service:
     build:
@@ -74,6 +91,28 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: mysql+pymysql://admin:admin@ecommerce_db:3306/ecommerce_db
+    networks:
+      - ecommerce_net
+    restart: on-failure
+
+  order_service:
+    build:
+      context: ./src/modules/order_service
+    container_name: order_service
+    ports:
+      - "8003:8000"
+    depends_on:
+      - auth_service
+      - cart_service
+      - product_service
+      - ecommerce_db
+    environment:
+      DATABASE_URL: mysql+pymysql://admin:admin@ecommerce_db:3306/ecommerce_db
+      AUTH_SERVICE_URL: http://auth_service:8000/auth/verify-token
+      CART_SERVICE_URL: http://cart_service:8000/api/cart
+      PRODUCT_SERVICE_URL: http://product_service:8000/products
+      SECRET_KEY: mi_clave_secreta
+      ALGORITHM: HS256
     networks:
       - ecommerce_net
     restart: on-failure

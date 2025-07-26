@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+COPY .env .env
+
 # Establecer PYTHONPATH para evitar problemas de importación
 ENV PYTHONPATH=/app
 

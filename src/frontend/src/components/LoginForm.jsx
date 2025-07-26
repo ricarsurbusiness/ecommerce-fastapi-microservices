@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 
-function LoginForm() {
+function LoginForm({ onLoginSuccess }) {
   const [form, setForm] = useState({ username: "", password: "" });
-  const [token, setToken] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -11,12 +13,13 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
       const data = await login(form);
-      setToken(data.access_token);
-      alert("Login exitoso");
+      onLoginSuccess(data.access_token);
+      navigate("/products"); // Redirigir al login exitoso
     } catch (err) {
-      alert("Error en login", err.message);
+      setError("Credenciales inválidas", err.message);
     }
   };
 
@@ -31,7 +34,7 @@ function LoginForm() {
         onChange={handleChange}
       />
       <button type="submit">Iniciar sesión</button>
-      {token && <p>Token: {token}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </form>
   );
 }

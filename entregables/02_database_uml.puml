@@ -1,0 +1,225 @@
+@startuml Database_UML_Diagram
+!define RECTANGLE class
+
+title Sistema E-Commerce - Diagrama UML de Base de Datos
+
+' Configuración de colores y estilos
+skinparam class {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor DarkBlue
+    AttributeFontColor Black
+    AttributeFontSize 10
+}
+
+skinparam database {
+    BackgroundColor LightYellow
+    BorderColor Orange
+}
+
+' Base de datos de Autenticación
+database "auth_db" as authdb {
+
+    class User {
+        +id: INT (PK, AUTO_INCREMENT)
+        +username: VARCHAR(50) UNIQUE
+        +password: VARCHAR(100)
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+        --
+        +INDEX idx_username (username)
+    }
+}
+
+' Base de datos principal de E-commerce
+database "ecommerce_db" as ecommercedb {
+
+    class Category {
+        +id: INT (PK, AUTO_INCREMENT)
+        +name: VARCHAR(100) UNIQUE
+        +description: TEXT
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+    }
+
+    class Product {
+        +id: INT (PK, AUTO_INCREMENT)
+        +name: VARCHAR(100)
+        +description: TEXT
+        +image_url: VARCHAR(255)
+        +size: VARCHAR(50)
+        +weight: DECIMAL(10,3)
+        +unit_price: DECIMAL(10,2)
+        +iva: DECIMAL(5,2) DEFAULT 19.00
+        +category_id: INT (FK)
+        +stock_quantity: INT DEFAULT 0
+        +is_active: BOOLEAN DEFAULT TRUE
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+        --
+        +INDEX idx_category (category_id)
+        +INDEX idx_name (name)
+        +INDEX idx_active (is_active)
+    }
+
+    class CartItem {
+        +id: INT (PK, AUTO_INCREMENT)
+        +user_id: INT
+        +product_id: INT
+        +quantity: INT DEFAULT 1
+        +unit_price: DECIMAL(10,2)
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+        --
+        +INDEX idx_user_id (user_id)
+        +INDEX idx_product_id (product_id)
+        +UNIQUE KEY unique_user_product (user_id, product_id)
+    }
+
+    class Order {
+        +id: INT (PK, AUTO_INCREMENT)
+        +user_id: INT
+        +total_amount: DECIMAL(12,2)
+        +status: ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled')
+        +shipping_address: TEXT
+        +billing_address: TEXT
+        +phone: VARCHAR(20)
+        +email: VARCHAR(100)
+        +notes: TEXT
+        +estimated_delivery: DATETIME
+        +delivered_at: DATETIME
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+        --
+        +INDEX idx_user_id (user_id)
+        +INDEX idx_status (status)
+        +INDEX idx_created_at (created_at)
+    }
+
+    class OrderItem {
+        +id: INT (PK, AUTO_INCREMENT)
+        +order_id: INT (FK)
+        +product_id: INT
+        +quantity: INT
+        +unit_price: DECIMAL(10,2)
+        +total_price: DECIMAL(12,2)
+        +product_name: VARCHAR(200)
+        +product_description: TEXT
+        +created_at: TIMESTAMP
+        --
+        +INDEX idx_order_id (order_id)
+        +INDEX idx_product_id (product_id)
+    }
+}
+
+' Vistas del sistema
+package "Views" {
+    class v_products_with_category <<view>> {
+        +id: INT
+        +name: VARCHAR(100)
+        +description: TEXT
+        +image_url: VARCHAR(255)
+        +size: VARCHAR(50)
+        +weight: DECIMAL(10,3)
+        +unit_price: DECIMAL(10,2)
+        +iva: DECIMAL(5,2)
+        +stock_quantity: INT
+        +is_active: BOOLEAN
+        +category_name: VARCHAR(100)
+        +category_description: TEXT
+        +created_at: TIMESTAMP
+        +updated_at: TIMESTAMP
+    }
+
+    class v_cart_summary <<view>> {
+        +user_id: INT
+        +total_items: INT
+        +total_quantity: INT
+        +total_amount: DECIMAL
+    }
+
+    class v_orders_detail <<view>> {
+        +order_id: INT
+        +user_id: INT
+        +total_amount: DECIMAL(12,2)
+        +status: ENUM
+        +shipping_address: TEXT
+        +phone: VARCHAR(20)
+        +email: VARCHAR(100)
+        +created_at: TIMESTAMP
+        +total_items: INT
+        +total_products: INT
+    }
+}
+
+' Procedimientos almacenados
+package "Stored Procedures" {
+    class sp_clear_user_cart <<procedure>> {
+        +IN p_user_id: INT
+        --
+        Limpia el carrito de un usuario específico
+    }
+
+    class sp_get_cart_summary <<procedure>> {
+        +IN p_user_id: INT
+        --
+        Obtiene resumen detallado del carrito
+    }
+
+    class sp_create_order_from_cart <<procedure>> {
+        +IN p_user_id: INT
+        +IN p_shipping_address: TEXT
+        +IN p_phone: VARCHAR(20)
+        +IN p_email: VARCHAR(100)
+        +IN p_notes: TEXT
+        --
+        Crea una orden desde el carrito del usuario
+    }
+}
+
+' Relaciones entre tablas
+Category ||--o{ Product : "has many"
+Product ||--o{ CartItem : "can be in cart"
+Order ||--o{ OrderItem : "contains"
+
+' Relaciones con usuarios (externa)
+User ||--o{ CartItem : "owns cart items"
+User ||--o{ Order : "places orders"
+
+' Relaciones de las vistas
+Product ||--o| v_products_with_category : "based on"
+Category ||--o| v_products_with_category : "based on"
+CartItem ||--o| v_cart_summary : "aggregates"
+Order ||--o| v_orders_detail : "based on"
+OrderItem ||--o| v_orders_detail : "based on"
+
+' Notas explicativas
+note top of authdb : Base de datos separada\npara microservicio de autenticación
+note top of ecommercedb : Base de datos principal\ncon toda la lógica de e-commerce
+note right of User : Contraseñas hasheadas\ncon bcrypt para seguridad
+note right of Product : Incluye información completa\ndel producto con IVA y stock
+note right of CartItem : Tabla intermedia usuario-producto\ncon precio al momento de agregar
+note right of Order : Estados del pedido:\npending → confirmed → processing\n→ shipped → delivered
+note bottom of OrderItem : Snapshot del producto\nal momento de la compra
+
+' Triggers y restricciones
+note bottom of Product : Triggers:\n- tr_validate_stock_cart\n- tr_update_stock_on_order
+
+' Leyenda
+legend right
+    |<back:lightblue>   | Tabla regular |
+    |<back:lightyellow> | Vista |
+    |<back:lightgreen>  | Procedimiento |
+
+    **Tipos de relaciones:**
+    • ||--o{ : Uno a muchos
+    • ||--o| : Uno a uno (opcional)
+
+    **Índices principales:**
+    • Claves primarias automáticas
+    • Índices en claves foráneas
+    • Índices compuestos para consultas
+    • Índices únicos para integridad
+endlegend
+
+@enduml
